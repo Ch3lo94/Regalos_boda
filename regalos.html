@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding-top: 20px;
+    }
+
+    .item {
+      width: 220px;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+
+    .item img {
+      width: 150px;
+      border-radius: 10px;
+    }
+
+    .item.sel {
+      border-color: #007BFF;
+      box-shadow: 0px 0px 8px rgba(0, 122, 255, 0.7);
+    }
+
+    #btnEnviar {
+      margin-top: 25px;
+      padding: 12px 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    let seleccionados = new Set();
+    let EMAIL = "";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      google.script.run.withSuccessHandler(cargarUsuario).getUser();
+    });
+
+    function cargarUsuario(user) {
+      EMAIL = user.email;
+
+      google.script.run.withSuccessHandler(renderRegalos).getRegalos();
+    }
+
+    function toggle(id) {
+      const card = document.getElementById("r" + id);
+
+      if (seleccionados.has(id)) {
+        seleccionados.delete(id);
+        card.classList.remove("sel");
+      } else {
+        seleccionados.add(id);
+        card.classList.add("sel");
+      }
+    }
+
+    function renderRegalos(lista) {
+      const cont = document.getElementById("regalos");
+      cont.innerHTML = "";
+
+      lista.forEach(r => {
+        cont.innerHTML += `
+          <div class="item" id="r${r.id}" onclick="toggle(${r.id})">
+            <img src="${r.imagen}">
+            <h3>${r.nombre}</h3>
+            <p>${r.descripcion}</p>
+          </div>`;
+      });
+    }
+
+    function enviar() {
+      if (seleccionados.size === 0) {
+        alert("Elegí al menos un regalo.");
+        return;
+      }
+
+      google.script.run.withSuccessHandler(res => {
+        if (!res.success) {
+          if (res.error === "email_ya_usado") alert("Tu correo ya respondió.");
+          else alert("Error: " + res.error);
+          return;
+        }
+        alert("¡Gracias por tu regalo!");
+        window.location.href = "login";
+      }).guardarRespuesta(
+        EMAIL,
+        Array.from(seleccionados)
+      );
+    }
+  </script>
+</head>
+
+<body>
+  <h2>Elegí los regalos que deseas darnos ❤️</h2>
+
+  <div id="regalos" class="grid">Cargando...</div>
+
+  <button id="btnEnviar" onclick="enviar()">Enviar selección</button>
+</body>
+</html>
