@@ -34,6 +34,12 @@
 
   <button id="btnGoogle" onclick="loginGoogle()">Acceder con Google</button>
 
+
+  <button onclick="window.location.href='auth.html'">
+    Iniciar sesión con Google
+</button>
+
+  
   <script>
     function loginGoogle() {
       google.script.run.withSuccessHandler(res => {
@@ -48,3 +54,4 @@
 
 </body>
 </html>
+
